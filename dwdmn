@@ -1,0 +1,396 @@
+import pandas as pd
+from google.colab import files
+import io
+
+# Step 1: Upload Files Manually
+print("Please upload ODI_1.csv and ODI_2.csv")
+uploaded = files.upload()  # This prompts a file upload box
+
+# Step 2: Read the uploaded CSV files
+odi1 = pd.read_csv("ODI_1.csv")
+odi2 = pd.read_csv("ODI_2.csv")
+
+
+# Step 5: Convert 'strike_rate' to float in both datasets (to avoid type mismatch)
+odi1['strike_rate'] = pd.to_numeric(odi1['strike_rate'], errors='coerce')
+odi2['strike_rate'] = pd.to_numeric(odi2['strike_rate'], errors='coerce')
+
+# Step 6: Remove duplicate `strike_rate` values from odi2
+odi2_unique = odi2[['strike_rate', 'player', 'team', 'minutes', 'opponent']].drop_duplicates(subset=['strike_rate'])
+
+# Step 7: Merge the datasets using 'strike_rate' as the key
+merged_data = pd.merge(odi1, odi2_unique, on='strike_rate', how='left')
+
+# Step 8: Save the merged dataset in Colab
+merged_file_name = "merged_output.csv"
+merged_data.to_csv(merged_file_name, index=False)
+print(f"✅ Merged dataset saved as '{merged_file_name}'")
+
+# Step 9: Download the merged file to your local computer
+files.download(merged_file_name)
+
+
+
+
+import pandas as pd
+from google.colab import files
+# Load the dataset
+ # Update the path if needed
+uploaded=files.upload()
+df = pd.read_csv("merged_output.csv")
+
+# Identify column types
+nominal_attributes = []
+ordinal_attributes = []
+numeric_attributes = []
+
+# Manually define ordinal attributes if applicable (e.g., rank-based attributes)
+predefined_ordinal = ["Rank", "Performance Level"]  # Add more if needed
+
+for col in df.columns:
+    if df[col].dtype == 'object':  # Categorical data (Nominal or Ordinal)
+        if col in predefined_ordinal:
+            ordinal_attributes.append(col)
+        else:
+            nominal_attributes.append(col)
+    else:  # Numeric attributes
+        numeric_attributes.append(col)
+
+# Display the classification
+print("✅ Nominal Attributes (Categorical - No Order):", nominal_attributes)
+print("✅ Ordinal Attributes (Categorical - Ordered):", ordinal_attributes)
+print("✅ Numeric Attributes (Numbers - Continuous/Discrete):", numeric_attributes)
+
+
+
+
+
+import pandas as pd
+from sklearn.model_selection import train_test_split
+
+from google.colab import files
+# Load the dataset
+ # Update the path if needed
+uploaded=files.upload()
+df = pd.read_csv("OUT.csv")
+
+# Choose an attribute for stratified sampling (e.g., 'Team')
+stratify_column = 'team'  # Change this if needed
+
+# Ensure the column exists
+if stratify_column not in df.columns:
+    print(f"Error: Column '{stratify_column}' not found in dataset.")
+else:
+    # Perform stratified sampling (20% of data from each category in 'Team')
+    stratified_sample, _ = train_test_split(df, test_size=0.8, stratify=df[stratify_column], random_state=42)
+
+    # Display sample
+    print("✅ Stratified Sample of Attribute:", stratify_column)
+    print(stratified_sample.head())
+
+    # Save the stratified sample
+    stratified_sample.to_csv("stratified_sample.csv", index=False)
+    print("✅ Stratified sample saved as 'stratified_sample.csv'")
+
+
+
+
+
+import pandas as pd
+from sklearn.preprocessing import MinMaxScaler
+
+from google.colab import files
+# Load the dataset
+ # Update the path if needed
+uploaded=files.upload()
+df = pd.read_csv("OUT.csv")
+
+# Choose an attribute for normalization (e.g., 'Runs')
+attribute = 'Runs'  # Change this to any numeric column
+
+# Check if the column exists
+if attribute not in df.columns:
+    print(f"Error: Column '{attribute}' not found in dataset.")
+else:
+    # Apply Min-Max Normalization
+    scaler = MinMaxScaler()
+    df[attribute + "_normalized"] = scaler.fit_transform(df[[attribute]])
+
+    # Display sample
+    print("✅ Normalized Data:")
+    print(df[[attribute, attribute + "_normalized"]].head())
+
+    # Save the new dataset
+    df.to_csv("normalized_output.csv", index=False)
+    print("✅ Normalized dataset saved as 'normalized_output.csv'")
+
+
+
+
+
+import pandas as pd
+import matplotlib.pyplot as plt
+
+from google.colab import files
+# Load the dataset
+ # Update the path if needed
+uploaded=files.upload()
+df = pd.read_csv("OUT.csv")
+# Choose an attribute to visualize (e.g., 'Runs')
+attribute = 'Runs'  # Change this to any numeric column
+
+# Check if the column exists
+if attribute not in df.columns:
+    print(f"Error: Column '{attribute}' not found in dataset.")
+else:
+    # Plot histogram
+    plt.figure(figsize=(8, 5))
+    plt.hist(df[attribute], bins=10, color='blue')
+
+    # Add labels and title
+    plt.xlabel(attribute)
+    plt.ylabel("Frequency")
+    plt.title(f"Histogram of {attribute}")
+    # plt.grid(axis='y', linestyle='--', alpha=0.6)
+
+    # Show the plot
+    plt.show()
+
+
+
+
+
+import pandas as pd
+from google.colab import files
+# Load the dataset
+ # Update the path if needed
+uploaded=files.upload()
+df = pd.read_csv("OUT.csv")
+
+
+# Choose a sampling percentage (e.g., 10% of data)
+sample_size = 0.1  # 10% sample
+
+# Apply random sampling
+sampled_df = df.sample(frac=sample_size, random_state=42)
+
+# Display sampled data
+print("✅ Sampled Data:")
+print(sampled_df)
+
+# Save the sampled dataset
+sampled_df.to_csv("sampled_output.csv", index=False)
+print("✅ Sampled dataset saved as 'sampled_output.csv'")
+
+
+
+
+
+import pandas as pd
+import matplotlib.pyplot as plt
+
+from google.colab import files
+# Load the dataset
+ # Update the path if needed
+uploaded=files.upload()
+df = pd.read_csv("OUT.csv")
+
+
+# 🔹 1. Bar Chart - Comparing Total Runs by Team
+plt.figure(figsize=(8, 5))
+df.groupby("team")["Runs"].sum().plot(kind="bar", color="blue", edgecolor="black")
+plt.xlabel("Team")
+plt.ylabel("Total Runs")
+plt.title("Total Runs by Team")
+# plt.xticks(rotation=45)
+
+plt.show()
+
+
+
+
+import pandas as pd
+from sklearn.preprocessing import LabelEncoder
+
+from google.colab import files
+# Load the dataset
+ # Update the path if needed
+uploaded=files.upload()
+df = pd.read_csv("OUT.csv")
+
+
+# Normalize column names (removes spaces & converts to lowercase)
+# df.columns = df.columns.str.strip().str.lower()
+
+# Identify categorical columns
+categorical_cols = df.select_dtypes(include=['object']).columns.tolist()
+print("Categorical Columns Found:", categorical_cols)
+
+# Apply Label Encoding
+encoder = LabelEncoder()
+for col in categorical_cols:
+    df[col] = encoder.fit_transform(df[col])
+
+# Display sample
+print("✅ Encoded Data:")
+print(df.head())
+
+# Save the updated dataset
+df.to_csv("encoded_output.csv", index=False)
+print("✅ Encoded dataset saved as 'encoded_output.csv'")
+files.download("encoded_output.csv")
+
+
+
+
+
+import pandas as pd
+import matplotlib.pyplot as plt
+from sklearn.model_selection import train_test_split
+from sklearn.tree import DecisionTreeClassifier, plot_tree
+from sklearn.metrics import accuracy_score
+from sklearn.metrics import confusion_matrix
+
+# from google.colab import files
+# # Load the dataset
+#  # Update the path if needed
+# uploaded=files.upload()
+df = pd.read_csv("encoded_output.csv")
+# Print column names for reference
+print("Columns in dataset:", df.columns.tolist())
+
+# Select features (X) and target (y)
+X = df.drop(columns=['team'])  # Features (Drop target column)
+y = df['team']  # Target column (Replace 'team_encoded' with your actual label column)
+
+# Split the dataset (80% training, 20% testing)
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+# Train the Decision Tree Classifier
+model = DecisionTreeClassifier()
+model.fit(X_train, y_train)
+
+# Make predictions
+y_pred = model.predict(X_test)
+
+# Evaluate accuracy
+accuracy = accuracy_score(y_test, y_pred)
+print(f"✅ Model Accuracy: {accuracy:.2f}")
+cm = confusion_matrix(y_test, y_pred)
+print("Confusion Matrix:")
+print(cm)
+
+# ✅ Visualize Decision Tree
+plt.figure(figsize=(12, 6))
+plot_tree(model, filled=True, feature_names=X.columns, class_names=[str(cls) for cls in y.unique()])
+plt.title("Decision Tree Visualization")
+plt.show()
+
+
+
+
+import pandas as pd
+import matplotlib.pyplot as plt
+from sklearn.cluster import KMeans
+from sklearn.preprocessing import StandardScaler
+from sklearn.decomposition import PCA
+
+
+df = pd.read_csv("encoded_output.csv")
+
+# # Encode categorical data if needed
+# label_encoders = {}
+# for col in df.columns:
+#     le = LabelEncoder()
+#     df[col] = le.fit_transform(df[col])
+#     label_encoders[col] = le  # Store encoders if needed later
+
+# Standardize the dataset (Important for K-Means)
+scaler = StandardScaler()
+df_scaled = scaler.fit_transform(df)
+
+# Reduce dimensions using PCA (2 components for visualization)
+pca = PCA(n_components=2)
+df_pca = pca.fit_transform(df_scaled)
+
+# Apply K-Means Clustering
+kmeans = KMeans(n_clusters=3, random_state=42, n_init=10)
+clusters = kmeans.fit_predict(df_pca)
+
+# Plot clusters
+plt.figure(figsize=(8, 5))
+plt.scatter(df_pca[:, 0], df_pca[:, 1], c=clusters)
+# plt.scatter(kmeans.cluster_centers_[:, 0], kmeans.cluster_centers_[:, 1], c='red', marker='X', s=200, label='Centroids')
+plt.xlabel("PCA Feature 1")
+plt.ylabel("PCA Feature 2")
+plt.title("Properly Partitioned K-Means Clustering")
+# plt.legend()
+plt.colorbar(label="Cluster")
+plt.show()
+
+# plt.figure(figsize=(8, 5))
+# plt.scatter(df_pca[:, 0], df_pca[:, 1], c=clusters, cmap='viridis', edgecolors='black')
+# plt.scatter(kmeans.cluster_centers_[:, 0], kmeans.cluster_centers_[:, 1], c='red', marker='X', s=200, label='Centroids')
+# plt.xlabel("PCA Feature 1")
+# plt.ylabel("PCA Feature 2")
+# plt.title("Properly Partitioned K-Means Clustering")
+# plt.legend()
+# plt.colorbar(label="Cluster")
+# plt.show()
+
+
+
+
+
+import pandas as pd
+import matplotlib.pyplot as plt
+import scipy.cluster.hierarchy as sch
+from sklearn.preprocessing import StandardScaler
+
+# 📥 Load Dataset
+df = pd.read_csv("encoded_output.csv")  # Update with the correct filename
+
+# 🎯 Select Features for Clustering
+# Choose relevant numerical columns (Example: Age, Income, Spending Score)
+features = ["Age", "Income", "Spending_Score"]  # Modify based on dataset
+X = df[features].dropna()  # Remove missing values if any
+
+# 🔹 Standardize the Features (Important for Clustering)
+scaler = StandardScaler()
+X_scaled = scaler.fit_transform(X)
+
+# 🔗 Compute the Linkage Matrix using Ward's Method
+linkage_matrix = sch.linkage(X_scaled, method="ward")  # 'ward' minimizes variance
+
+# 📊 Plot the Dendrogram
+plt.figure(figsize=(10, 5))
+sch.dendrogram(linkage_matrix, orientation="top", distance_sort="descending", show_leaf_counts=True)
+plt.xlabel("Data Points")
+plt.ylabel("Cluster Distance")
+plt.title("Hierarchical Clustering Dendrogram")
+plt.show()
+
+
+
+
+import pandas as pd
+
+# 📥 Load the dataset (Replace 'your_data.csv' with actual file)
+df = pd.read_csv("your_data.csv")
+
+# 🔍 1️⃣ Check for Missing Values
+print("Missing Values Before Handling:")
+print(df.isnull().sum())
+
+# 🔹 2️⃣ Fill Missing Values using Mean, Median, and Mode
+df['Age'].fillna(df['Age'].mean(), inplace=True)  # Fill 'Age' missing values with Mean
+df['Salary'].fillna(df['Salary'].median(), inplace=True)  # Fill 'Salary' missing values with Median
+df['Category'].fillna(df['Category'].mode()[0], inplace=True)  # Fill 'Category' missing values with Mode
+
+# 🔍 3️⃣ Check Again After Filling
+print("\nMissing Values After Handling:")
+print(df.isnull().sum())
+
+# ✅ Save the cleaned dataset
+df.to_csv("cleaned_data.csv", index=False)
+print("\n✅ Missing values handled and saved as 'cleaned_data.csv'")
